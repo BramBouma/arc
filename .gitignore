@@ -9,7 +9,6 @@ venv/
 ENV/
 env/
 
-# Python version file (if you want to enforce a specific version, you might commit this; otherwise, ignore it)
 # .python-version
 
 # uv project lock file
@@ -45,5 +44,5 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
-# Environment variables file (if you decide to use one)
+# Environment variables file
 .env

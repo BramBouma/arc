@@ -20,4 +20,4 @@ class FredWrapper(Fred):
         logger.info("FredWrapper initialized successfully.")
 
 
-base_fred = FredWrapper()
+# base_fred = FredWrapper()

@@ -1,6 +1,7 @@
 from fredapi import Fred
 from config import get_fred_api_key
 from utils import default_logger as logger
+import pandas as pd
 
 
 class FredWrapper(Fred):
@@ -17,7 +18,13 @@ class FredWrapper(Fred):
             logger.info("Using provided API key.")
 
         super().__init__(api_key, **kwargs)
-        logger.info("FredWrapper initialized successfully.")
+        logger.info("FredWrapper initialized successfully")
 
+    def get_latest_release(self, series_id):
+        data = self.get_series_latest_release(series_id)
+        # data.name = series_id
+        data = pd.DataFrame(data)
+        data.index.name = "Date"
+        data.columns = [series_id]
 
-# base_fred = FredWrapper()
+        return data

@@ -1,5 +1,5 @@
 [project]
-name = "data-report"
+name = "arc"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -8,5 +8,23 @@ dependencies = [
     "fredapi>=0.5.2",
     "matplotlib>=3.10.1",
     "pandas>=2.2.3",
+    "rich>=13.9.4",
+    "typer>=0.15.2",
     "yfinance>=0.2.54",
+]
+
+[project.scripts]
+arc = "src.cli:app"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tools.setuptools]
+packages = ["api", "utils", "processing", "visualization", "scheduler", "database"]
+package-dir = {"" = "src"}
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
 ]

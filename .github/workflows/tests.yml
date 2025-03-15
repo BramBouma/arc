@@ -24,7 +24,6 @@ jobs:
       - name: Set Up Environment Variables
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-          YAHOO_FINANCE_API_KEY: ${{ secrets.YAHOO_FINANCE_API_KEY }}
         run: echo "Environment variables set"
 
       - name: Run Tests

@@ -21,13 +21,10 @@ jobs:
       - name: Install Dependencies
         run: uv sync --all-extras --dev
 
-      - name: Set Up Environment Variables
-        env:
-          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-        run: echo "Environment variables set"
-
       - name: Set Python Path
         run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
 
       - name: Run Tests
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: uv run pytest tests

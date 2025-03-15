@@ -26,5 +26,8 @@ jobs:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: echo "Environment variables set"
 
+      - name: Set Python Path
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
+
       - name: Run Tests
         run: uv run pytest tests

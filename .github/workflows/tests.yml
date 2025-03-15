@@ -1,0 +1,31 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [main, dev]  # Run tests on pushes to main and dev
+  pull_request:
+    branches: [main, dev]  # Run tests on PRs to main and dev
+
+jobs:
+  test:
+    name: Python Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Set Up Environment Variables
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          YAHOO_FINANCE_API_KEY: ${{ secrets.YAHOO_FINANCE_API_KEY }}
+        run: echo "Environment variables set"
+
+      - name: Run Tests
+        run: uv run pytest tests

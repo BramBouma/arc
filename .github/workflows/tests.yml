@@ -1,0 +1,30 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [main, dev]  # Run tests on pushes to main and dev
+  pull_request:
+    branches: [main, dev]  # Run tests on PRs to main and dev
+
+jobs:
+  test:
+    name: Python Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Set Python Path
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
+
+      - name: Run Tests
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: uv run pytest tests

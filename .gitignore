@@ -12,7 +12,7 @@ env/
 # .python-version
 
 # uv project lock file
-uv.lock
+# uv.lock
 
 # Distribution / packaging
 build/

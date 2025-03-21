@@ -40,7 +40,12 @@ def stock(
     start: str = typer.Option(None, "-s", "--start", help="Start date for data (YYYY-MM-DD)"),
     end: str = typer.Option(None, "-e", "--end", help="End date for data (YYYY-MM-DD)"),
     output: str = typer.Option("table", "-o", "--output", help="Output format [excel|csv|chart|table]"),
-    columns: list[str] = typer.Option(["Close"], "-c", "--columns", help="Columns to fetch [Close, Open, High, Low, Volume, Dividends, Stock Splits]"),
+    columns: list[str] = typer.Option(
+        ["Close"],
+        "-c",
+        "--columns",
+        help="Columns to fetch [Close, Open, High, Low, Volume, Dividends, Stock Splits]"
+    ),
 ):
     """Fetch stock data from Yahoo Finance and display it."""
 

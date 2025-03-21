@@ -3,10 +3,10 @@
 
 ## notes
 ---
-### data
+### data sources
 - currently integrated data sources:
     - Yahoo Finance for public equity data (via YFinance package)
-    - FRED for U.S. macro data(via FRED API)
+    - FRED for U.S. macro data (via FRED API)
 - looking for api integrations for:
     - Stats Canada
     - EDGAR

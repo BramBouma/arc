@@ -1,5 +1,7 @@
 from yfinance import Tickers
+from yfinance.utils import auto_adjust as adj
 from utils import default_logger as logger
+# import pandas as pd
 
 
 class YFWrapper():
@@ -34,22 +36,35 @@ class YFWrapper():
         logger.info("Tickers object initialized succesfully")
         self.tickers_obj.append(tick)
 
-        return tick.download(
-            period,
-            interval,
-            start,
-            end,
-            prepost,
-            actions,
-            auto_adjust,
-            repair,
-            proxy,
-            threads,
-            group_by,
-            progress,
-            timeout,
+        data = tick.download(
+            period=period,
+            interval=interval,
+            start=start,
+            end=end,
+            prepost=prepost,
+            actions=actions,
+            auto_adjust=False,
+            repair=repair,
+            proxy=proxy,
+            threads=threads,
+            group_by=group_by,
+            progress=progress,
+            timeout=timeout,
             **kwargs
         )
+
+        # self auto-adjust so that unadjusted is always cached locally
+        # this is how adjustment was applied in yfinance source code
+        # https://github.com/ranaroussi/yfinance/blob/main/yfinance/scrapers/history.py#L416
+        if auto_adjust:
+            try:
+                data = adj(data)
+
+            except Exception as e:
+                err_msg = "auto_adjust failed with %s" % e
+
+        return data
+
 
 
 # base_yf = YFWrapper()

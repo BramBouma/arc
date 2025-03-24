@@ -14,7 +14,7 @@
 ---
 ### CLI
 - currently refactoring cli to rust
-- to init python CLI use uv tool install:
+- to install python CLI use uv tool install:
     ```bash
     cd arc
     uv tool install .

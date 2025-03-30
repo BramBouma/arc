@@ -66,5 +66,4 @@ class YFWrapper():
         return data
 
 
-
 # base_yf = YFWrapper()

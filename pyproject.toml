@@ -7,6 +7,8 @@ requires-python = ">=3.11"
 dependencies = [
     "fredapi>=0.5.2",
     "matplotlib>=3.10.1",
+    "mplfinance>=0.12.10b0",
+    "numpy>=2.2.3",
     "pandas>=2.2.3",
     "rich>=13.9.4",
     "typer>=0.15.2",

@@ -101,16 +101,20 @@ def handle_output(data, output_type, filename):
     if output_type == "table":
         from rich import print
         print(data)
+
     elif output_type == "csv":
         data.to_csv(f"{filename}.csv")
         logger.info(f"Data exported to {filename}.csv")
+
     elif output_type == "excel":
         data.to_excel(f"{filename}.xlsx")
         logger.info(f"Data exported to {filename}.xlsx")
+
     elif output_type == "chart":
         import matplotlib.pyplot as plt
         data.plot(title=filename)
         plt.show()
+
     else:
         logger.error(f"Unsupported output format: {output_type}")
 

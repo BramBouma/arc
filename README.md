@@ -2,8 +2,8 @@
 
 A command‑line (for now) application for aggregating financial and economic data, caching it locally, and producing quick tabular or visual outputs.
 >[!IMPORTANT]
->See branch 'dev' for current state
->main branch is essentially a minimal viable product
+>See branch 'dev' for current state  
+>main branch is essentially a minimal viable product  
 >main branch is stable and works for FRED/yahoo finance, but no storage logic (i.e. no "--no-cache" flag)
 ---
 ## 1  Apr 2025

@@ -1,9 +1,9 @@
 # arc
 
-A command‑line application for aggregating financial and economic data, caching it locally, and producing quick tabular or visual outputs. This README aims to give another developer a **self‑contained view of the project**—what already works, why it was built the way it is, and exactly what’s left to do.
+A command‑line (for now) application for aggregating financial and economic data, caching it locally, and producing quick tabular or visual outputs.
 
 ---
-## 1  Project snapshot (Apr 2025)
+## 1  Apr 2025
 
 | Layer | What works today | What’s still missing |
 |-------|------------------|-----------------------|
@@ -14,61 +14,59 @@ A command‑line application for aggregating financial and economic data, ca
 | **Packaging** | Single `arc` namespace; editable install via `uv pip install -e .`; global install via `uv tool install -e`. | None. |
 
 ---
-## 2  Design decisions so far
+## 2  Design
 
-* **Namespacing** – All code lives under a single `arc` package to avoid clashes (`import arc.api …`).
+* **Namespacing** – All code lives under a single `arc` package to avoid clashes (`import arc.api …`)
 * **Dual‑store strategy**  
-  * Structured, numeric, versioned → **SQLite** (fast local queries, ACID, zero server).  
-  * Heterogeneous JSON / text blobs → **TinyDB** (single JSON file, no schema friction).
-* **SQLAlchemy ORM ≥ raw SQL** – Easier migrations if we someday promote the DB to Postgres; type‑annotated models help IDE navigation.
-* **Typer** – Minimal boilerplate for a multi‑command CLI, auto‑generates `--help`, supports PowerShell completion.
-* **uv (Python launcher)** – Fast dependency solves; `uv tool …` provides globally‑shimmed CLI without polluting the dev venv.
+  * Structured, numeric, versioned → **SQLite** (fast local queries, ACID, zero server)
+  * Heterogeneous JSON / text blobs → **TinyDB** (single JSON file, no schema friction)
+* **SQLAlchemy ORM ≥ raw SQL** – Easier migrations, type‑annotated models provide LSP symbols for navigation/debugging in IDE
+* **Typer** – Minimal boilerplate for a multi‑command CLI, auto‑generates `--help`, supports PowerShell completion
+* **uv (Python launcher)** – Fast dependency solves; `uv tool …` provides globally‑shimmed CLI without polluting the dev venv
 
 ---
-## 3  Open tasks (expanded)
-
-Below is the *live* backlog excerpted from our private planning doc. Checked items are complete; unchecked items are upcoming.
+## 3  open-tasks
 
 ### 3.1  Persistence & caching
 
 - [ ] **Implement insert helpers** in `database/models.py`  
-   - [ ] `StockMetadata` → upsert by `ticker`.  
-  - [ ] `StockPrice` → bulk insert with `ON CONFLICT` handling.  
-  - [ ] `EconomicSeries` + `EconomicData` → link via foreign key.
+   - [ ] `StockMetadata` → upsert by `ticker`  
+  - [ ] `StockPrice` → bulk insert with `ON CONFLICT` handling  
+  - [ ] `EconomicSeries` + `EconomicData` → link via foreign key
 - [ ] **Wire `FredWrapper` write‑path**  
-  Call insert helpers after network fetch.
+  Call insert helpers after network fetch
 - [ ] **Add `cache` param to `YFWrapper.get_data()`**  
-  If `cache=True`, attempt DB read before calling yfinance; write results back afterward.
+  If `cache=True`, attempt DB read before calling yfinance; write results back afterward
 
 ### 3.2  API coverage
 
 - [ ] **Stats Canada wrapper**  
-  - Map dataset discovery endpoint.  
-  - Parse CSV/JSON into pandas DataFrame.  
-  - Respect cache flag.
+  - Map dataset discovery endpoint  
+  - Parse CSV/JSON into pandas DataFrame  
+  - Respect cache flag
 - [ ] **EDGAR wrapper**  
-  - Already fetches submissions JSON → next step is caching filings list to TinyDB.  
-  - Long‑term: parse 10‑K sections into the relational DB.
+  - Already fetches submissions JSON → next step is caching filings list to TinyDB  
+  - Long‑term: parse 10‑K sections into the relational DB
 
 ### 3.3  Automation / scheduler
 
-- [ ] Introduce **APScheduler** job runner (`arc/schedule.py`).
+- [ ] Introduce **APScheduler** job runner (`arc/schedule.py`)
 - [ ] Nightly task reads `conf/watchlist.yml` and refreshes:  
   - tickers prices (daily interval)  
   - macro series (monthly releases)
-- [ ] CLI command `arc schedule run` to launch the scheduler loop.
+- [ ] CLI command `arc schedule run` to launch the scheduler loop
 
 ### 3.4  Visualization layer
 
 - [ ] Finish `visualization/basic_chart.py`  
-  - [ ] Candlestick plot for OHLCV.  
-  - [ ] Line plot for economic time‑series.  
-  Return `matplotlib.Figure` so CLI can display or save.
+  - Candlestick plot for OHLCV  
+  - Line plot for economic time‑series  
+  Return `matplotlib.Figure` so CLI can display or save
 
 ### 3.5  Testing & CI
 
-- [ ] **Integration test** spins up temporary SQLite DB, runs `arc fred CPIAUCSL`, asserts rows added.
-- [ ] **GitHub Actions** workflow installs deps and runs pytest matrix (Linux, Windows).
+- [ ] **Integration test** spins up temporary SQLite DB, runs `arc fred CPIAUCSL`, asserts rows added
+- [ ] **GitHub Actions** workflow installs deps and runs pytest matrix (Linux, Windows)
 
 ---
 ## 4  Usage quick‑start
@@ -89,21 +87,19 @@ arc --no-cache fred CPIAUCSL
 # 5  Grab weekly prices for AAPL and MSFT
 arc stock AAPL MSFT -p 1y -i 1wk -o chart
 ```
+>[!IMPORTANT]
+>- running CLI *without* "--no-cache" flag with output error  
+>- insert logic and DB standup is not done yet  
+>- (essentially just use with only network calls without any DB / storage caching and it works)
 
-Environment variables expected: `FRED_API_KEY`, `STATS_CANADA_API_KEY`, `EDGAR_API_KEY`. Load them via `.env` or export in the shell.
+>[!NOTE]
+>Environment variables expected: `FRED_API_KEY`, `STATS_CANADA_API_KEY`, `EDGAR_API_KEY`. Load them via `.env` or export in the shell
 
 ---
 ## 5  Roadmap (summary)
 
-1. **Finish relational write‑path**  → project becomes usable offline after first run.  
-2. **Add Stats Canada & EDGAR ingestion**  → broadens dataset breadth.  
-3. **Nightly scheduler + Streamlit prototype**  → automated refresh and basic dashboard.  
-4. **CI + docs polish**  → stabilize for sharing or open‑sourcing.
-
-*(A more granular checklist lives outside the repository for now and is mirrored here under §3 Open tasks.)*
-
----
-## 6  License
-
-Undecided; will likely adopt MIT once core functionality stabilises.
+1. **Finish relational write‑path**  → project becomes usable offline after first run  
+2. **Add Stats Canada & EDGAR ingestion**  → broadens dataset breadth  
+3. **Nightly scheduler + Streamlit/Django/Electron prototype**  → automated refresh and basic dashboard  
+4. **CI + docs polish**  → stabilize for sharing or open‑sourcing
 

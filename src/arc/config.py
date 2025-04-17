@@ -1,5 +1,5 @@
 import os
-from utils import default_logger as logger, ConfigurationError
+from arc.utils import default_logger as logger, ConfigurationError
 
 # API endpoints
 FRED_API_URL = "https://api.stlouisfed.org/fred/"

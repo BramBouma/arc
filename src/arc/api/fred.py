@@ -1,6 +1,6 @@
 from fredapi import Fred
-from config import get_fred_api_key
-from utils import default_logger as logger
+from arc.config import get_fred_api_key
+from arc.utils import default_logger as logger
 import pandas as pd
 
 
@@ -12,7 +12,7 @@ class FredWrapper(Fred):
 
     def __init__(self, api_key: str = None, **kwargs):
         if api_key is None:
-            logger.info("No API key provided, fetching from config...")
+            logger.info("No API key provided, fetching from arc.config...")
             api_key = get_fred_api_key()
         else:
             logger.info("Using provided API key.")

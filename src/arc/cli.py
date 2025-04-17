@@ -1,6 +1,6 @@
 import typer
-from api import FredWrapper, YFWrapper
-from utils import default_logger as logger
+from arc.api import FredWrapper, YFWrapper
+from arc.utils import default_logger as logger
 import pandas as pd
 # from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 

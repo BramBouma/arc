@@ -1,6 +1,6 @@
 from yfinance import Tickers
 from yfinance.utils import auto_adjust as adj
-from utils import default_logger as logger
+from arc.utils import default_logger as logger
 # import pandas as pd
 
 

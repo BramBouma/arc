@@ -2,7 +2,7 @@
 
 A command‑line (for now) application for aggregating financial and economic data, caching it locally, and producing quick tabular or visual outputs.
 >[!IMPORTANT]
->See branch 'dev' for current state  
+>See 'dev' branch for current state  
 >main branch is essentially a minimal viable product  
 >main branch is stable and works for FRED/yahoo finance, but no storage logic (i.e. no "--no-cache" flag)
 ---
@@ -10,7 +10,7 @@ A command‑line (for now) application for aggregating financial and economi
 
 | Layer | What works today | What’s still missing |
 |-------|------------------|-----------------------|
-| **API wrappers** | FRED and Yahoo Finance wrappers fully operational. | Stats Canada JSON wrapper and EDGAR filings fetcher are stub files. |
+| **API wrappers** | FRED and Yahoo Finance wrappers fully operational. | - Stats Canada JSON wrapper and EDGAR filings fetcher are stub files.<br>- might try to add SEDAR much later, but idek if SEDAR has programmic access yet|
 | **Persistence** | • SQLAlchemy + SQLite engine scaffolding (`database/core.py`).<br>• ORM models for stock metadata/prices and initial economic tables.<br>• TinyDB document store (`database/document_store.py`) used by EDGAR stub. | ORM **write‑helpers** are incomplete → caches are *read‑only*; first run will hit remote APIs. |
 | **CLI** | Typer CLI with two sub‑commands: `fred` and `stock`.<br>Global `--no-cache` flag wired. | When caches are enabled, command will raise if underlying write‑helpers are unfinished. |
 | **Tests / CI** | Basic unit tests for FRED and YF wrappers. | No integration tests yet; no GitHub Actions pipeline. |
@@ -21,8 +21,8 @@ A command‑line (for now) application for aggregating financial and economi
 
 * **Namespacing** – All code lives under a single `arc` package to avoid clashes (`import arc.api …`)
 * **Dual‑store strategy**  
-  * Structured, numeric, versioned → **SQLite** (fast local queries, ACID, zero server)
-  * Heterogeneous JSON / text blobs → **TinyDB** (single JSON file, no schema friction)
+  - Structured, numeric, versioned → **SQLite** (fast local queries, ACID, zero server)  
+  - Heterogeneous JSON / text blobs → **TinyDB** (single JSON file, no schema friction)
 * **SQLAlchemy ORM ≥ raw SQL** – Easier migrations, type‑annotated models provide LSP symbols for navigation/debugging in IDE
 * **Typer** – Minimal boilerplate for a multi‑command CLI, auto‑generates `--help`, supports PowerShell completion
 * **uv (Python launcher)** – Fast dependency solves; `uv tool …` provides globally‑shimmed CLI without polluting the dev venv
@@ -33,13 +33,13 @@ A command‑line (for now) application for aggregating financial and economi
 ### 3.1  Persistence & caching
 
 - [ ] **Implement insert helpers** in `database/models.py`  
-   - [ ] `StockMetadata` → upsert by `ticker`  
-  - [ ] `StockPrice` → bulk insert with `ON CONFLICT` handling  
-  - [ ] `EconomicSeries` + `EconomicData` → link via foreign key
+  - `StockMetadata` → upsert by `ticker`  
+  - `StockPrice` → bulk insert with `ON CONFLICT` handling  
+  - `EconomicSeries` + `EconomicData` → link via foreign key
 - [ ] **Wire `FredWrapper` write‑path**  
-  Call insert helpers after network fetch
+  - Call insert helpers after network fetch
 - [ ] **Add `cache` param to `YFWrapper.get_data()`**  
-  If `cache=True`, attempt DB read before calling yfinance; write results back afterward
+  - If `cache=True`, attempt DB read before calling yfinance; write results back afterward
 
 ### 3.2  API coverage
 

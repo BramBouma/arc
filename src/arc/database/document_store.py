@@ -27,7 +27,7 @@ class _DocDB:
         self._db = TinyDB(
             Path(file_path),
             storage=CachingMiddleware(JSONStorage),  # simple write‑back cache
-            indent=2,  # human‑readable JSON
+            indent=2,
         )
 
     # ---------- Generic helpers ---------- #
@@ -77,5 +77,5 @@ class _DocDB:
         self._db.close()
 
 
-# singleton instance that other modules can import
+# instance that other modules can import
 doc_db = _DocDB()

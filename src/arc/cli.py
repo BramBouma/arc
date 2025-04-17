@@ -5,19 +5,50 @@ import pandas as pd
 # from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 
 
-app = typer.Typer()
+app = typer.Typer(
+    no_args_is_help=True,
+    context_settings=dict(
+        help_option_names=["-h", "--help"],
+    ),
+)
 
 
+# GLOBAL FLAGS
+@app.callback(invoke_without_command=False)
+def main(
+    ctx: typer.Context,
+    no_cache: bool = typer.Option(
+        False,
+        "--no-cache",
+        help="Bypass local SQLite/TinyDB caches and always hit the remote APIs",
+        show_default=True,
+    ),
+):
+    """
+    arc - aggregate financial & economic data
+
+    Use --no-cache to force fresh API calls
+    """
+
+    ctx.obj = {"cache": not no_cache}
+
+
+# SUB-COMMANDS
 @app.command()
 def fred(
+    ctx: typer.Context,
     series_id: str = typer.Argument(..., help="Fred series ID (e.g., CPIAUCSL)"),
     output: str = typer.Option(
         "table", "-o", "--output", help="Output format [excel|csv|chart|table]"
     ),
 ):
     """Fetch data from Fred and display it."""
-    fred_api = FredWrapper()
-    logger.info(f"Fetching Fred data for series: {series_id}")
+    cache = ctx.obj["cache"]
+    data = FredWrapper().get_latest_release(series_id, cache=cache)
+
+    handle_output(data, output, f"{series_id}_fred_data")
+
+    # logger.info(f"Fetching Fred data for series: {series_id}")
 
     # with Progress(
     #     SpinnerColumn(),
@@ -29,13 +60,10 @@ def fred(
     #     data = fred_api.get_series_latest_release(series_id)
     #     progress.update(task_id, advance=1)
 
-    data = fred_api.get_latest_release(series_id)
-
-    handle_output(data, output, f"{series_id}_fred_data")
-
 
 @app.command()
 def stock(
+    ctx: typer.Context,
     tickers: list[str] = typer.Argument(..., help="List of ticker symbols to fetch."),
     period: str = typer.Option(
         "1mo", "-p", "--period", help="Data retrieval period (e.g., 1mo, 1y)"
@@ -58,7 +86,7 @@ def stock(
     ),
 ):
     """Fetch stock data from Yahoo Finance and display it."""
-
+    cache = ctx.obj["cache"]
     columns = [col.capitalize() for col in columns]
 
     VALID_COLUMNS = {
@@ -103,6 +131,7 @@ def stock(
         interval=interval,
         start=start,
         end=end,
+        cache=cache,
     )
 
     if isinstance(data.columns, pd.MultiIndex):

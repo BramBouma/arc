@@ -160,7 +160,9 @@ def handle_output(data, output_type, filename):
             data.plot(title=filename)
             plt.show()
         case _:
-            logger.error(f"Unsupported output format: {output_type}")
+            logger.error(
+                f"Unsupported output format: {output_type}, supported outputs: table, csv, excel, chart"
+            )
 
 
 if __name__ == "__main__":

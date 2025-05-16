@@ -48,4 +48,5 @@ def get_edgar_headers() -> dict[str, str]:
     to override the default.
     """
     ua = os.getenv("EDGAR_USER_AGENT", "arc/0.1 (your.email@example.com)")
-    return {"User-Agent": ua}
+    # return {"User-Agent": ua}
+    return ua

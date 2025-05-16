@@ -1,3 +1,4 @@
+from typing import List
 import typer
 import pandas as pd
 
@@ -138,17 +139,22 @@ def stock(
 @app.command()
 def edgar(
     ctx: typer.Context,
-    cik: str = typer.Argument(..., help="SEC Central Index Key (CIK)"),
-    output: str = typer.Option(
-        "table", "-o", "--output", help="Output format [excel|csv|chart|table]"
+    tickers: list[str] = typer.Argument(
+        ..., help="ticker or list of tickers to get json financials from"
     ),
+    # cik: str = typer.Argument(..., help="SEC Central Index Key (CIK)"),
+    # output: str = typer.Option(
+    #     "table", "-o", "--output", help="Output format [excel|csv|chart|table]"
+    # ),
 ):
     """Fetch recent filing metadata from SEC EDGAR"""
     cache = ctx.obj["cache"]
-    wrapper = EdgarWrapper()
+    edgar_api = EdgarWrapper()
 
-    payload = wrapper.fetch_submissions(cik, cache=cache)
-    recent = payload.get("filings", {}).get("recent", {})
+    # temporarily have cache=False for now
+    edgar_api.get_data(tickers=tickers, cache=False)
+
+    # recent = payload.get("filings", {}).get("recent", {})
 
     # if not recent:
     #     logger.warning("No recent filings found for CIK %s", cik)

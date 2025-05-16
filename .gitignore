@@ -35,6 +35,8 @@ coverage.xml
 
 # Logs and local files
 *.log
+*arc.db
+*arc_docs.json
 
 # IDE / Editor specific files
 .vscode/

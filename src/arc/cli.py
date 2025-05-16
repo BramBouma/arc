@@ -1,7 +1,7 @@
 import typer
 import pandas as pd
 
-from arc.api import FredWrapper, YFWrapper, StatsCanWrapper
+from arc.api import FredWrapper, YFWrapper, StatsCanWrapper, EdgarWrapper
 from arc.utils import default_logger as logger
 import arc.schedule as _sched
 
@@ -132,7 +132,37 @@ def stock(
     _handle_output(data, output, f"{'_'.join(tickers)}_stock_data")
 
 
-# scheduler commands
+# ────────────────────────────────────────────────────────────
+#  EDGAR
+# ────────────────────────────────────────────────────────────
+@app.command()
+def edgar(
+    ctx: typer.Context,
+    cik: str = typer.Argument(..., help="SEC Central Index Key (CIK)"),
+    output: str = typer.Option(
+        "table", "-o", "--output", help="Output format [excel|csv|chart|table]"
+    ),
+):
+    """Fetch recent filing metadata from SEC EDGAR"""
+    cache = ctx.obj["cache"]
+    wrapper = EdgarWrapper()
+
+    payload = wrapper.fetch_submissions(cik, cache=cache)
+    recent = payload.get("filings", {}).get("recent", {})
+
+    # if not recent:
+    #     logger.warning("No recent filings found for CIK %s", cik)
+    #     from rich import print as rprint
+    #
+    #     rprint(payload)
+    #     return
+    #
+    # df = pd.DataFrame(recent)
+
+
+# ────────────────────────────────────────────────────────────
+#  Scheduler sub-commands
+# ────────────────────────────────────────────────────────────
 scheduler_app = typer.Typer()
 app.add_typer(scheduler_app, name="scheduler")
 

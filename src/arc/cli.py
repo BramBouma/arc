@@ -1,8 +1,9 @@
 import typer
-from arc.api import FredWrapper, YFWrapper
-from arc.utils import default_logger as logger
 import pandas as pd
-# from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
+
+from arc.api import FredWrapper, YFWrapper, StatsCanWrapper
+from arc.utils import default_logger as logger
+import arc.schedule as _sched
 
 
 app = typer.Typer(
@@ -13,7 +14,9 @@ app = typer.Typer(
 )
 
 
-# GLOBAL FLAGS
+# ────────────────────────────────────────────────────────────
+#  global flags
+# ────────────────────────────────────────────────────────────
 @app.callback(invoke_without_command=False)
 def main(
     ctx: typer.Context,
@@ -33,7 +36,10 @@ def main(
     ctx.obj = {"cache": not no_cache}
 
 
-# SUB-COMMANDS
+# ────────────────────────────────────────────────────────────
+#  sub-commands
+# ────────────────────────────────────────────────────────────
+# FRED
 @app.command()
 def fred(
     ctx: typer.Context,
@@ -42,39 +48,44 @@ def fred(
         "table", "-o", "--output", help="Output format [excel|csv|chart|table]"
     ),
 ):
-    """Fetch data from Fred and display it."""
+    """Fetch data from Fred"""
     cache = ctx.obj["cache"]
     data = FredWrapper().get_latest_release(series_id, cache=cache)
 
-    handle_output(data, output, f"{series_id}_fred_data")
-
-    # logger.info(f"Fetching Fred data for series: {series_id}")
-
-    # with Progress(
-    #     SpinnerColumn(),
-    #     TextColumn("[progress.description]{task.description}"),
-    #     TimeElapsedColumn(),
-    #     transient=True
-    # ) as progress:
-    #     task_id = progress.add_task(description="Fetching data from FRED...", total=None)
-    #     data = fred_api.get_series_latest_release(series_id)
-    #     progress.update(task_id, advance=1)
+    _handle_output(data, output, f"{series_id}_fred_data")
 
 
+# Stats Canada
+@app.command()
+def statcan(
+    ctx: typer.Context,
+    vector_id: str = typer.Argument(..., help="StatsCan vector ID (e.g., v41690973)"),
+    output: str = typer.Option("table", "-o", "--output"),
+):
+    """Fetch data from Stats Canada"""
+    cache = ctx.obj["cache"]
+    data = StatsCanWrapper().get_vector(vector_id, cache=cache)
+
+    _handle_output(data, output, f"{vector_id}_statcan")
+
+
+# Yahoo Finance
 @app.command()
 def stock(
     ctx: typer.Context,
-    tickers: list[str] = typer.Argument(..., help="List of ticker symbols to fetch."),
+    tickers: list[str] = typer.Argument(..., help="ticker symbols to fetch."),
     period: str = typer.Option(
         "1mo", "-p", "--period", help="Data retrieval period (e.g., 1mo, 1y)"
     ),
     interval: str = typer.Option(
         "1d", "-i", "--interval", help="Data interval [1d, 1mo, etc.]"
     ),
-    start: str = typer.Option(
+    start: str | None = typer.Option(
         None, "-s", "--start", help="Start date for data (YYYY-MM-DD)"
     ),
-    end: str = typer.Option(None, "-e", "--end", help="End date for data (YYYY-MM-DD)"),
+    end: str | None = typer.Option(
+        None, "-e", "--end", help="End date for data (YYYY-MM-DD)"
+    ),
     output: str = typer.Option(
         "table", "-o", "--output", help="Output format [excel|csv|chart|table]"
     ),
@@ -85,9 +96,9 @@ def stock(
         help="Columns to fetch [Close, Open, High, Low, Volume, Dividends, Stock Splits]",
     ),
 ):
-    """Fetch stock data from Yahoo Finance and display it."""
+    """Fetch stock data from Yahoo Finance"""
     cache = ctx.obj["cache"]
-    columns = [col.capitalize() for col in columns]
+    columns = [col.title() for col in columns]
 
     VALID_COLUMNS = {
         "Open",
@@ -109,22 +120,6 @@ def stock(
     yf_api = YFWrapper()
     logger.info(f"Fetching data for tickers: {tickers}")
 
-    # with Progress(
-    #     SpinnerColumn(),
-    #     TextColumn("[progress.description]{task.description}"),
-    #     TimeElapsedColumn(),
-    #     transient=True,
-    # ) as progress:
-    #     task_id = progress.add_task(description=f"Fetching data for tickers: {tickers}", total=None)
-    #     data = yf_api.get_data(
-    #         tickers,
-    #         period=period,
-    #         interval=interval,
-    #         start=start,
-    #         end=end,
-    #     )
-    #     progress.update(task_id, advance=1)
-
     data = yf_api.get_data(
         tickers,
         period=period,
@@ -134,34 +129,55 @@ def stock(
         cache=cache,
     )
 
-    if isinstance(data.columns, pd.MultiIndex):
-        data = data.loc[:, (columns, slice(None))]
-    else:
-        data = data[columns]
-
-    handle_output(data, output, f"{'_'.join(tickers)}_stock_data")
+    _handle_output(data, output, f"{'_'.join(tickers)}_stock_data")
 
 
-def handle_output(data, output_type, filename):
-    match output_type:
+# scheduler commands
+scheduler_app = typer.Typer()
+app.add_typer(scheduler_app, name="scheduler")
+
+
+@scheduler_app.command("run")
+def schedule_run():
+    """start the blocking APScheduler loop (ctrl-c to quit)"""
+    _sched.launch()
+
+
+@scheduler_app.command("once")
+def schedule_once():
+    """run all refresh jobs once, then exit"""
+    _sched.refresh_stocks()
+    _sched.refresh_fred()
+    logger.info("Manual refresh complete")
+
+
+# ────────────────────────────────────────────────────────────
+#  helpers
+# ────────────────────────────────────────────────────────────
+def _handle_output(df: pd.DataFrame, kind: str, filename: str):
+    match kind:
         case "table":
             from rich import print
 
-            print(data)
+            print(df)
+
         case "csv":
-            data.to_csv(f"{filename}.csv")
+            df.to_csv(f"{filename}.csv")
             logger.info(f"Data exported to {filename}.csv")
+
         case "excel":
-            data.to_excel(f"{filename}.xlsx")
+            df.to_excel(f"{filename}.xlsx")
             logger.info(f"Data exported to {filename}.xlsx")
+
         case "chart":
             import matplotlib.pyplot as plt
 
-            data.plot(title=filename)
+            df.plot(title=filename)
             plt.show()
+
         case _:
             logger.error(
-                f"Unsupported output format: {output_type}, supported outputs: table, csv, excel, chart"
+                f"Unsupported output format: {kind}, supported outputs: table, csv, excel, chart"
             )
 
 

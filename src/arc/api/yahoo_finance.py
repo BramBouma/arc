@@ -109,10 +109,12 @@ class YFWrapper:
                         pk = upsert_ticker(t)
                         bulk_insert_prices(pk, interval, part)
                 dfs.extend(stack)
+
             else:
                 df_live.columns = [c.title() for c in df_live.columns]
                 t = missing[0]
                 dfs.append(df_live.assign(Ticker=t))
+
                 if cache:
                     pk = upsert_ticker(t)
                     bulk_insert_prices(pk, interval, df_live)
